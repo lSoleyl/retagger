@@ -4,7 +4,7 @@ A simple mp3 tagging tool.
 
 ## Install
 
-As this repository isn't currently published to npm you have to manually install it manually.
+As this repository isn't currently published to npm, you have to install it manually.
 
     git clone https://github.com/lSoleyl/retagger.git
     npm link
@@ -20,7 +20,7 @@ Without this switch all files will be directly modified.
 
 ## Applied changes
 
-## Artists & Title
+### Artists & Title
 The script supports one of the following naming schemes for files:
  * `<artist1>&<artist2> - <title>` (spaces between the seperator and artist are allowed)
  * `<artist1>,<artist2> - <title>` (spaces between the seperator and artist are allowed)
