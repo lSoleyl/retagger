@@ -1,0 +1,30 @@
+{
+  "name": "retagger",
+  "description": "A small tool for automatically changing the mp3 tag data of multiple files in a batch",
+  "version": "1.0.0",
+  "main": "retagger.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lSoleyl/retagger"
+  },
+  "bugs": {
+    "url": "https://github.com/lSoleyl/retagger/issues"
+  },
+  "keywords": [
+    "mp3",
+    "id3",
+    "id3v2",
+    "autotag"
+  ],
+  "dependencies": {
+    "async": "^2.6.0",
+    "glob": "^7.1.2",
+    "lodash": "^4.17.4",
+    "minimist": "^1.2.0",
+    "mp3tag": "lSoleyl/mp3tag"
+  },
+  "bin": "./retagger.js",
+  "preferGlobal": true,
+  "private": true,
+  "license": "MIT"
+}
