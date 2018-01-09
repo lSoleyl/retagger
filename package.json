@@ -1,7 +1,8 @@
 {
   "name": "retagger",
   "description": "A small tool for automatically changing the mp3 tag data of multiple files in a batch",
-  "version": "1.0.0",
+  "autor": "lSoleyl <lsoleyl@gmail.com>",
+  "version": "1.0.1",
   "main": "retagger.js",
   "repository": {
     "type": "git",

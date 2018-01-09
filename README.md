@@ -36,4 +36,4 @@ The album is set to the basename of the directory, the file is in. (Eg. `/home/m
 
 ## Limitations
 
-The tool currently only supports files with id3v2 tags. Other versions aren't supported.
+The tool currently only supports files with id3 tags of versions 2.3 and 2.4. Other versions aren't supported. The underlying library has currently no support for features like frame compression or frame encryption.

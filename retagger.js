@@ -20,6 +20,12 @@ const testMode = args['test'];
 var filesChanged = 0;
 
 glob("**/*.mp3", (err, files) => {
+  if (err) {
+    console.error("Error while scanning for mp3 files: ", err);
+    process.exitCode = 1;
+    return;
+  }
+
   async.eachSeries(files, updateFile, (err) => {
     if (err) {
       console.error("An error occurred: ", err)
@@ -36,13 +42,13 @@ glob("**/*.mp3", (err, files) => {
 function getString(tag, id) {
   var frame = tag.getFrameBuffer(id);
   if (frame)
-    return mp3tag.decodeString(frame);
+    return tag.decoder.decodeString(frame);
 
   return '-';
 }
 
 function setString(tag, id, string) {
-  tag.setFrameBuffer(id, mp3tag.encodeString(string));
+  tag.setFrameBuffer(id, tag.decoder.encodeString(string));
 }
 
 // List of properties to check
