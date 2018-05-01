@@ -7,6 +7,7 @@ A simple mp3 tagging tool.
 As this repository isn't currently published to npm, you have to install it manually.
 
     git clone https://github.com/lSoleyl/retagger.git
+    cd retagger
     npm link
 
 ## Usage
