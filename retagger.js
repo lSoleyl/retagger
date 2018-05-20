@@ -76,6 +76,14 @@ const properties = [
     var absolutePath = path.resolve(filename);
       return path.basename(path.dirname(absolutePath));
     }
+  },
+
+  {
+    description:'Track',
+    id: 'TRCK',
+    expected: function(filename) {
+      return matchFile(filename).track;
+    }
   }
 ];
 
@@ -126,7 +134,13 @@ function updateFile(filepath, cb) {
 }
 
 
-const PATTERNS = [ 
+const PATTERNS = [
+  { // matcher for providing a track number (002 interpret - title)
+    regex: /([0-9]+) (.*?) - (.*)/,
+    track: 1,
+    artists: [2],
+    title: 3
+  },
   { //matcher for multiple artists (a ft. b - bla , a&b - kkk)
      regex: /(.*?)\s*(([fF]([eE][aA])?[tT]\.)|([,&]))\s*(.*?) - (.*)/,
      artists: [1,6],
@@ -153,7 +167,8 @@ function applyPattern(pattern, filename) {
 
   return {
     title: match[pattern.title],
-    artists: _.map(pattern.artists, (index) => { return match[index]; }).join('/')
+    artists: _.map(pattern.artists, (index) => { return match[index]; }).join('/'),
+    track: pattern.track ? (parseInt(match[pattern.track])+'') : ''
   };
 }
 
