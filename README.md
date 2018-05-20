@@ -28,6 +28,7 @@ The script supports one of the following naming schemes for files:
  * `<artist1> ft. <artist2> - <title>` (ft. can also be written as feat)
  * `<artist> - <title>`
  * `<title>` (default match if no other pattern matches)
+ * `<trackNr> <artist> - <title>` (Additionally sets the track number, which must be a number separated by spaces from the artist)
 
 To make sure a set of files matches the scheme, `retagger --test` should be run to check how the filenames have been interpreted.
 
