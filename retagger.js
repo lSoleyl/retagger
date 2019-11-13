@@ -135,6 +135,12 @@ function updateFile(filepath, cb) {
 
 
 const PATTERNS = [
+  { //matcher for track number + multiple artists (a ft. b - bla , a&b - kkk)
+    regex: /^([0-9]+) (.*?)\s*(([fF]([eE][aA])?[tT]\.)|([,&]))\s*(.*?) - (.*)$/,
+    track: 1,
+    artists: [2,7],
+    title: 8
+  },
   { // matcher for providing a track number (002 interpret - title)
     regex: /^([0-9]+) (.*?) - (.*)$/,
     track: 1,
