@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 const mp3tag = require('mp3tag');
-const async = require('async');
 const glob = require('glob');
 const path = require('path');
 const _ = require('lodash');
-const fs = require('fs');
 
 var args = require('minimist')(process.argv.slice(2));
 
 if (args['help']) {
   console.log("retagger.js - Retagging tool for .mp3 files");
-  console.log("Title and artist are derived from the file's name and the album is derived from the folder's name");
+  console.log("Title and artist are derived from the file's name and the album is derived from the folder's name.");
+  console.log("The tool will recursively scan all subdirectories starting from the current directory.")
   console.log("Usage: node retagger.js [--test]");
   console.log("  test - only print changes, don't apply them");
   return;
@@ -19,21 +18,24 @@ if (args['help']) {
 const testMode = args['test'];
 var filesChanged = 0;
 
-glob("**/*.mp3", (err, files) => {
+glob("**/*.mp3", async (err, files) => {
   if (err) {
     console.error("Error while scanning for mp3 files: ", err);
     process.exitCode = 1;
     return;
   }
 
-  async.eachSeries(files, updateFile, (err) => {
-    if (err) {
-      console.error("An error occurred: ", err)
-      return;
-    }
+  for (const filePath of files) {
+    try {
+      await updateFile(filePath);
+    } catch(err) {
+      // Add information to help locate problem
+      err.message += ` in file: ${filePath}`;
+      throw err;
+    }    
+  }
 
-    console.log(filesChanged + "/" + files.length + " files changed");
-  });
+  console.log(`${filesChanged}/${files.length} files changed`);
 });
 
 
@@ -73,7 +75,7 @@ const properties = [
     description:'Album',
     id: 'TALB',
     expected: function(filename) { 
-    var absolutePath = path.resolve(filename);
+      const absolutePath = path.resolve(filename);
       return path.basename(path.dirname(absolutePath));
     }
   },
@@ -91,46 +93,40 @@ const properties = [
 /** Opens one file, and applies all necessary changes to it. The callback is called, once this
  *  has been done.
  */
-function updateFile(filepath, cb) {
-  mp3tag.readHeader(filepath, (err, tag) => {
-    if (err) {
-      err.message += " in file: " + filepath;
-      return cb(err);
+async function updateFile(filePath) {
+
+
+  const tagData = await mp3tag.readHeader(filePath);
+
+  const changes = [];
+
+  // First simply collect all changes
+  _.each(properties, (prop) => {
+    const current = getString(tagData, prop.id);
+    const expected = prop.expected(filePath);
+
+    if (current !== expected) {
+      changes.push(_.defaults({new:expected, current:current}, prop));
     }
+  });
 
-
-    var changes = [];
-
-    // First simply collect all changes
-    _.each(properties, (prop) => {
-      var current = getString(tag, prop.id);
-      var expected = prop.expected(filepath);
-
-      if (current !== expected) {
-        changes.push(_.defaults({new:expected, current:current}, prop));
+  // Now print changes and apply them if we aren't in test mode
+  if (changes.length > 0) {
+    console.log(`File: ${filePath} :`);  
+    _.each(changes, (change) => {
+      console.log(`  ${change.description}: ${change.current} --> ${change.new}`);
+      if (!testMode) {
+        setString(tagData, change.id, change.new);
       }
     });
 
-    // Now print changes and apply them if we aren't in test mode
-    if (changes.length > 0) {
-      console.log("File: " + filepath + ":");  
-      _.each(changes, (change) => {
-        console.log("  " + change.description + ": " + change.current + " --> " + change.new);
-        if (!testMode) {
-          setString(tag, change.id, change.new);
-        }
-      });
-
-      if (!testMode) {
-        ++filesChanged;
-        tag.save(_.noop);
-      }
-
-      console.log("\n\n");
+    if (!testMode) {
+      ++filesChanged;
+      tagData.save(_.noop);
     }
 
-    process.nextTick(() => { cb(null); });
-  });
+    console.log("\n\n");
+  }
 }
 
 
@@ -167,9 +163,10 @@ const PATTERNS = [
 /** Matches the pattern and returns an object, which contains the calculated result structure or null if no match was possible.
  */
 function applyPattern(pattern, filename) {
-  var match = pattern.regex.exec(filename);
-  if (!match)
+  const match = pattern.regex.exec(filename);
+  if (!match) {
     return null;
+  }
 
   return {
     title: match[pattern.title],
@@ -179,10 +176,10 @@ function applyPattern(pattern, filename) {
 }
 
 function matchFile(filename) {
-  var name = path.basename(filename, '.mp3');
+  const name = path.basename(filename, '.mp3');
 
-  for(var i = 0; i < PATTERNS.length; ++i) {
-    var result = applyPattern(PATTERNS[i], name);
+  for(let i = 0; i < PATTERNS.length; ++i) {
+    const result = applyPattern(PATTERNS[i], name);
 
     if (result) {
       return result;
