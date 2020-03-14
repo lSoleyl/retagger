@@ -20,7 +20,7 @@
   "dependencies": {
     "glob": "^7.1.6",
     "lodash": "^4.17.15",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.2",
     "mp3tag": "^1.0.1"
   },
   "bin": "./retagger.js",
