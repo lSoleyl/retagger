@@ -143,6 +143,12 @@ const PATTERNS = [
     artists: [2],
     title: 3
   },
+  { // matcher for tracknumber + title (002 title)
+    regex: /^([0-9]+) (.*)$/,
+    track: 1,
+    artists: [],
+    title: 2
+  },
   { //matcher for multiple artists (a ft. b - bla , a&b - kkk)
      regex: /^(.*?)\s*(([fF]([eE][aA])?[tT]\.)|([,&]))\s*(.*?) - (.*)$/,
      artists: [1,6],
