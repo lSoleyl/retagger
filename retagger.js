@@ -40,17 +40,16 @@ glob("**/*.mp3", async (err, files) => {
 
 
 /** Retrieves the frame with the given id from the tag and decodes it as string if it exists
+ *  
+ * @return the frame's string content or undefined if the frame doesn't exist
  */
 function getString(tag, id) {
   var frame = tag.getFrameBuffer(id);
-  if (frame)
+  if (frame) {
     return tag.decoder.decodeString(frame);
+  }
 
-  return '-';
-}
-
-function setString(tag, id, string) {
-  tag.setFrameBuffer(id, tag.decoder.encodeString(string));
+  return undefined;
 }
 
 // List of properties to check
@@ -90,6 +89,41 @@ const properties = [
 ];
 
 
+/** Helper class representing a required changed to a tag
+ */
+class Change {
+  /**
+   * @param {*} frame the description of the property/frame to change
+   * @param {string} currentValue the frame's current value (may be undefined)
+   * @param {string} newValue the frame's expected value (may be undefined)
+   */
+  constructor(frame, currentValue, newValue) {
+    this.frame = frame;
+    this.currentValue = currentValue;
+    this.newValue = newValue;
+  }
+
+  /** Applies this change to the tag data object
+   * 
+   * @param {TagData} tagData the mp3 tag data to apply this change to
+   */
+  apply(tagData) {
+    if (this.newValue === undefined) {
+      // No value to set -> delete the frame if any
+      tagData.removeFrame(this.frame.id);
+    } else {
+      // Regular string frame content -> set it
+      tagData.setFrameBuffer(this.frame.id, tagData.decoder.encodeString(this.newValue));  
+    }
+  }
+
+
+  toString() {
+    return `${this.frame.description}: ${this.currentValue || '-'} --> ${this.newValue || '-'}`;
+  }
+
+}
+
 /** Opens one file, and applies all necessary changes to it. The callback is called, once this
  *  has been done.
  */
@@ -98,6 +132,8 @@ async function updateFile(filePath) {
 
   const tagData = await mp3tag.readHeader(filePath);
 
+  /** @type {Change[]}
+   */
   const changes = [];
 
   // First simply collect all changes
@@ -106,7 +142,7 @@ async function updateFile(filePath) {
     const expected = prop.expected(filePath);
 
     if (current !== expected) {
-      changes.push(_.defaults({new:expected, current:current}, prop));
+      changes.push(new Change(prop, current, expected));
     }
   });
 
@@ -114,9 +150,9 @@ async function updateFile(filePath) {
   if (changes.length > 0) {
     console.log(`File: ${filePath} :`);  
     _.each(changes, (change) => {
-      console.log(`  ${change.description}: ${change.current} --> ${change.new}`);
+      console.log(`  ${change}`);
       if (!testMode) {
-        setString(tagData, change.id, change.new);
+        change.apply(tagData);
       }
     });
 
@@ -177,7 +213,7 @@ function applyPattern(pattern, filename) {
   return {
     title: match[pattern.title],
     artists: _.map(pattern.artists, (index) => { return match[index]; }).join('/'),
-    track: pattern.track ? (parseInt(match[pattern.track])+'') : ''
+    track: pattern.track ? (parseInt(match[pattern.track])+'') : undefined
   };
 }
 
